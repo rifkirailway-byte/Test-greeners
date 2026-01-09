@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard Panitia Greeners</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e8f5e9;
+      padding: 15px;
+    }
+    h1, h2, h3 {
+      color: #2e7d32;
+      text-align: center;
+    }
+    button {
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      width: 100%;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .card {
+      background: white;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+    }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+
+<!-- HALAMAN 1 -->
+<div id="halaman1">
+  <h1>Selamat Datang!</h1>
+  <p style="text-align:center;">Halo Panitia <b>Greeners</b> 🌱</p>
+  <button onclick="keHalaman2()">Lanjut</button>
+</div>
+
+<!-- HALAMAN 2 -->
+<div id="halaman2" style="display:none;">
+  <h2>Menu</h2>
+  <button onclick="tampilBagian('laporan')">1. Laporan Poin</button>
+  <button onclick="tampilBagian('pencapaian')">2. Lihat Pencapaian</button>
+  <button onclick="tampilBagian('keuangan')">3. Transparansi Keuangan</button>
+  <button onclick="tampilBagian('juknis')">4. Juknis Panitia</button>
+
+  <div id="konten" class="card" style="margin-top:10px;">
+    <!-- Konten muncul di sini -->
+  </div>
+</div>
+
+<script>
+  let data = [];
+  let adminMode = false;
+  const adminPass = "greeners2026";
+
+  // Tombol lanjut halaman utama
+  function keHalaman2() {
+    document.getElementById('halaman1').style.display = 'none';
+    document.getElementById('halaman2').style.display = 'block';
+  }
+
+  // Login admin
+  function loginAdmin() {
+    let pass = prompt("Masukkan password admin:");
+    if(pass === adminPass) {
+      adminMode = true;
+      alert("Login admin berhasil ✅");
+      tampil(); 
+    } else {
+      adminMode = false;
+      alert("Password salah ❌");
+      tampil();
+    }
+  }
+
+  // Tambah data tugas
+  function tambah() {
+    let nama = document.getElementById("nama").value.trim();
+    let tugas = document.getElementById("tugas").value.trim();
+    if(nama === "" || tugas === "") { alert("Isi dulu ya"); return; }
+
+    let orang = data.find(item => item.nama.toLowerCase() === nama.toLowerCase());
+    if(orang) {
+      orang.poin += 1;
+      orang.tugas.push(tugas);
+    } else {
+      data.push({nama: nama, poin: 1, tugas: [tugas]});
+    }
+
+    document.getElementById("nama").value = "";
+    document.getElementById("tugas").value = "";
+    tampil();
+  }
+
+  // Tampilkan menu / konten sesuai pilihan
+  function tampilBagian(bagian) {
+    let konten = document.getElementById('konten');
+    if(bagian === 'laporan') {
+      konten.innerHTML = `
+        <h3>Tambah Laporan Poin</h3>
+        <input id="nama" placeholder="Nama panitia"><br>
+        <input id="tugas" placeholder="Tugas selesai"><br>
+        <button onclick="tambah()">Tambah</button>
+        <button onclick="loginAdmin()">Login Admin</button>
+        <ul id="list"></ul>
+      `;
+      tampil();
+    } 
+    else if(bagian === 'pencapaian') {
+      let html = '<h3>Daftar Poin Panitia</h3><ul>';
+      data.forEach(function(item, i){
+        let tugasHTML = item.tugas.map((t,j) => {
+          return `<li>${t}${adminMode ? ` <button onclick="hapusTugas(${i},${j})">❌</button>` : ''}</li>`;
+        }).join('');
+        html += `<li><b>${item.nama}</b> - Poin: ${item.poin}<ul>${tugasHTML}</ul></li>`;
+      });
+      html += '</ul>';
+      konten.innerHTML = html;
+    } 
+    else if(bagian === 'keuangan') {
+      konten.innerHTML = `
+        <h3>Contoh Pengeluaran</h3>
+        <ul>
+          <li>Konsumsi: Rp 200.000</li>
+          <li>Transport: Rp 150.000</li>
+          <li>Perlengkapan: Rp 300.000</li>
+        </ul>
+      `;
+    } 
+    else if(bagian === 'juknis') {
+      konten.innerHTML = `
+        <h3>Juknis Panitia</h3>
+        <ul>
+          <li>Ngumpul tepat waktu</li>
+          <li>Bawa alat tulis</li>
+          <li>Kerja sama tim</li>
+          <li>Jangan telat</li>
+        </ul>
+      `;
+    }
+  }
+
+  // Tampilkan daftar laporan di halaman laporan
+  function tampil() {
+    let list = document.getElementById("list");
+    if(!list) return;
+    list.innerHTML = "";
+    data.forEach(function(item,i){
+      let tugasHTML = item.tugas.map((t,j) => {
+        return `<li>${t}${adminMode ? ` <button onclick="hapusTugas(${i},${j})">❌</button>` : ''}</li>`;
+      }).join('');
+      list.innerHTML += `<li><b>${item.nama}</b> - Poin: ${item.poin}<ul>${tugasHTML}</ul></li>`;
+    });
+  }
+
+  // Hapus tugas per admin
+  function hapusTugas(i,j){
+    data[i].tugas.splice(j,1);
+    data[i].poin -= 1;
+    if(data[i].poin < 0) data[i].poin = 0;
+    tampil();
+  }
+</script>
+
+</body>
+</html>
